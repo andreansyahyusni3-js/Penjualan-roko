@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RokokSales PRO - DJO 2-Week Edition</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    input, select, textarea {
+      user-select: text;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printableReceiptModal, #printableReceiptModal * {
+        visibility: visible;
+      }
+      #printableReceiptModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+        box-shadow: none !important;
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen pb-20 lg:pb-6">
+
+  <!-- LAYOUT WRAPPER -->
+  <div class="flex flex-col lg:flex-row min-h-screen">
+
+    <!-- DESKTOP / LAPTOP SIDEBAR NAVIGATION -->
+    <aside class="hidden lg:flex lg:flex-col w-64 bg-slate-900 text-slate-200 border-r border-slate-800 p-4 sticky top-0 h-screen z-40">
+      <div class="flex items-center space-x-3 mb-6 pb-4 border-b border-slate-800">
+        <div class="bg-red-700 text-white p-2.5 rounded-xl flex items-center justify-center">
+          <i class="fa-solid fa-truck-ramp-box text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base leading-tight text-white">RokokSales PRO</h1>
+          <p class="text-[11px] text-red-400 font-medium">Sistem DJO 2 Mingguan</p>
+        </div>
+      </div>
+
+      <!-- DJO Cycle Control Sidebar -->
+      <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 mb-6 space-y-2">
+        <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">Siklus DJO Aktif</span>
+        <div class="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-lg text-xs font-bold">
+          <button onclick="setGlobalCycle('MINGGU_A')" id="btnSidebarCycleA" class="py-1 rounded bg-red-700 text-white transition">Minggu A</button>
+          <button onclick="setGlobalCycle('MINGGU_B')" id="btnSidebarCycleB" class="py-1 rounded text-slate-400 hover:text-white transition">Minggu B</button>
+        </div>
+        <select id="djoSelectSidebar" onchange="changeActiveDJO(this.value)" class="w-full bg-slate-900 text-white text-xs font-semibold px-2 py-1.5 rounded border border-slate-700 focus:outline-none">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="space-y-1 flex-1">
+        <button onclick="switchTab('home')" id="sidebar-nav-home" class="sidebar-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold text-xs text-red-400 bg-red-950/40 transition">
+          <i class="fa-solid fa-chart-pie text-sm w-5"></i>
+          <span>Dashboard DJO</span>
+        </button>
+        <button onclick="switchTab('pos')" id="sidebar-nav-pos" class="sidebar-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold text-xs text-slate-400 hover:bg-slate-800 transition">
+          <i class="fa-solid fa-cash-register text-sm w-5"></i>
+          <span>Kasir / POS</span>
+        </button>
+        <button onclick="switchTab('outlets')" id="sidebar-nav-outlets" class="sidebar-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold text-xs text-slate-400 hover:bg-slate-800 transition">
+          <i class="fa-solid fa-store text-sm w-5"></i>
+          <span>DJO Toko (A/B)</span>
+        </button>
+        <button onclick="switchTab('stock')" id="sidebar-nav-stock" class="sidebar-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold text-xs text-slate-400 hover:bg-slate-800 transition">
+          <i class="fa-solid fa-boxes-stacked text-sm w-5"></i>
+          <span>Stok Van</span>
+        </button>
+        <button onclick="switchTab('history')" id="sidebar-nav-history" class="sidebar-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold text-xs text-slate-400 hover:bg-slate-800 transition">
+          <i class="fa-solid fa-receipt text-sm w-5"></i>
+          <span>Riwayat Transaksi</span>
+        </button>
+        <button onclick="switchTab('debts')" id="sidebar-nav-debts" class="sidebar-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold text-xs text-slate-400 hover:bg-slate-800 transition">
+          <i class="fa-solid fa-file-invoice-dollar text-sm w-5"></i>
+          <span>Kelola Piutang</span>
+        </button>
+      </nav>
+
+      <div class="text-[10px] text-slate-500 pt-4 border-t border-slate-800 text-center">
+        Sales Mobile & Desktop System
+      </div>
+    </aside>
+
+    <!-- CONTENT WRAPPER -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- TOP HEADER (MOBILE VIEW ONLY) -->
+      <header class="lg:hidden bg-red-700 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid font-bold text-lg fa-truck-ramp-box"></i>
+            <div>
+              <h1 class="font-bold text-sm leading-tight">RokokSales PRO</h1>
+              <p id="headerCycleLabel" class="text-[10px] text-red-200">Siklus: MINGGU A</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="toggleCycleMobile()" id="mobileCycleToggleBtn" class="bg-red-900 text-white text-[10px] font-extrabold px-2 py-1 rounded border border-red-500">
+              MINGGU A
+            </button>
+            <select id="djoSelectHeader" onchange="changeActiveDJO(this.value)" class="bg-red-800 text-white text-xs font-semibold px-2 py-1 rounded border border-red-600 focus:outline-none">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT CONTAINER -->
+      <main class="flex-1 max-w-6xl w-full mx-auto p-3 lg:p-6 space-y-4">
+
+        <!-- TAB 1: HOME / DASHBOARD -->
+        <section id="tab-home" class="tab-content space-y-4">
+          
+          <!-- DJO BANNER -->
+          <div class="bg-gradient-to-r from-red-800 via-red-700 to-red-600 rounded-2xl p-4 lg:p-6 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span id="dashCycleBadge" class="text-[10px] font-extrabold uppercase tracking-wider bg-red-950/80 px-2 py-0.5 rounded-md text-red-200">MINGGU A</span>
+                <span id="dashDeviceDate" class="text-xs font-medium text-red-100">Hari Ini</span>
+              </div>
+              <h2 id="dashDjoTitle" class="text-xl lg:text-2xl font-extrabold mt-1">DJO SENIN</h2>
+              <p id="dashDjoArea" class="text-xs text-red-100 opacity-90 mt-0.5">Rayon Pasar Anyar & Kota</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="openManageDjoModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Kelola DJO</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KEY METRICS CARDS -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+              <div class="flex items-center justify-between text-slate-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wide">Omzet Hari Ini</span>
+                <i class="fa-solid fa-chart-line text-emerald-600"></i>
+              </div>
+              <div id="dashTodayOmzet" class="text-base lg:text-lg font-extrabold text-slate-800">Rp 0</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Semua transaksi hari ini</p>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+              <div class="flex items-center justify-between text-slate-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wide">Tunai Hari Ini</span>
+                <i class="fa-solid fa-money-bill-wave text-blue-600"></i>
+              </div>
+              <div id="dashTodayCashSales" class="text-base lg:text-lg font-extrabold text-slate-800">Rp 0</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Penjualan + Pelunasan</p>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+              <div class="flex items-center justify-between text-slate-500 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wide">Piutang Baru</span>
+                <i class="fa-solid fa-file-invoice-dollar text-amber-600"></i>
+              </div>
+              <div id="dashTodayNewDebt" class="text-base lg:text-lg font-extrabold text-slate-800">Rp 0</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Penjualan tempo hari ini</p>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-red-200 bg-red-50/40">
+              <div class="flex items-center justify-between text-red-700 mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wide">Total Piutang Toko</span>
+                <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+              </div>
+              <div id="dashTotalOutstandingDebt" class="text-base lg:text-lg font-extrabold text-red-700">Rp 0</div>
+              <p class="text-[10px] text-red-600/80 mt-0.5">Akumulasi piutang toko</p>
+            </div>
+
+          </div>
+
+          <!-- DESKTOP GRID: CHART & OUTLET PROGRESS -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <div class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Performa Omzet Per Produk (30 Hari)</h3>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">1 Bulan Terakhir</span>
+              </div>
+              <div class="relative w-full h-56 lg:h-64">
+                <canvas id="productPerformanceChart"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Kunjungan Toko DJO</h3>
+                  <span id="dashVisitedCount" class="text-xs font-bold text-red-600">0 / 0 Toko</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-3">
+                  <div id="dashVisitedProgressBar" class="bg-red-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                
+                <div id="dashOutletList" class="space-y-2 max-h-56 lg:max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                  <!-- Outlet status list populated by JS -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- TAB 2: KASIR / POS -->
+        <section id="tab-pos" class="tab-content hidden space-y-4">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <div class="lg:col-span-2 space-y-3">
+              
+              <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Pilih Toko / Outlet Tujuan</label>
+                <select id="posOutletSelect" onchange="onPosOutletChange(this.value)" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-red-500 focus:outline-none">
+                  <!-- Populated by JS -->
+                </select>
+                
+                <div id="posOutletBadge" class="mt-2 text-xs flex items-center justify-between bg-slate-100 p-2.5 rounded-lg hidden">
+                  <div>
+                    <span id="posOutletTierBadge" class="font-bold px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-700">RETAIL</span>
+                    <span id="posOutletName" class="font-semibold text-slate-800 ml-1">Toko -</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span id="posOutletDebtInfo" class="text-red-600 font-bold">Piutang: Rp 0</span>
+                    <button id="posPayDebtBtn" onclick="openPayDebtModal()" class="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded font-medium hover:bg-emerald-700 transition hidden">
+                      Bayar Piutang
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex rounded-lg bg-slate-200 p-1 text-xs font-bold">
+                <button id="btnModeCatalog" onclick="switchPosMode('catalog')" class="flex-1 py-1.5 rounded-md bg-white shadow-sm text-red-700 transition">
+                  <i class="fa-solid fa-boxes-stacked mr-1"></i> Katalog Produk
+                </button>
+                <button id="btnModeManual" onclick="switchPosMode('manual')" class="flex-1 py-1.5 rounded-md text-slate-600 transition">
+                  <i class="fa-solid fa-keyboard mr-1"></i> Input Manual Fast-Entry
+                </button>
+              </div>
+
+              <!-- POS CATALOG -->
+              <div id="posCatalogContainer" class="space-y-2">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="posProductCatalogGrid">
+                  <!-- Cards populated by JS -->
+                </div>
+              </div>
+
+              <!-- POS MANUAL ENTRY -->
+              <div id="posManualContainer" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hidden space-y-3">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b pb-1.5">Input Pembelian Manual</h4>
+                
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Pilih Produk</label>
+                  <select id="manualProductSelect" onchange="onManualProductSelect()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-red-500">
+                    <!-- Populated by JS -->
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Satuan</label>
+                    <select id="manualUnitSelect" onchange="onManualUnitSelect()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-red-500">
+                      <option value="Bungkus">Bungkus (Bks)</option>
+                      <option value="Slop">Slop (10 Bks)</option>
+                      <option value="Bal">Bal (200 Bks)</option>
+                      <option value="Karton">Karton (800 Bks)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Jumlah / Qty</label>
+                    <input type="number" id="manualQtyInput" min="1" value="1" oninput="recalcManualTotal()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold focus:ring-1 focus:ring-red-500">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Harga Satuan (Rp) <span class="text-[10px] text-slate-400">(Dapat Diubah)</span></label>
+                  <input type="number" id="manualPriceInput" min="0" oninput="recalcManualTotal()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-emerald-700 focus:ring-1 focus:ring-red-500">
+                </div>
+
+                <div class="bg-slate-50 p-2.5 rounded-lg flex items-center justify-between border border-slate-200">
+                  <span class="text-xs font-semibold text-slate-600">Subtotal Manual:</span>
+                  <span id="manualSubtotalText" class="text-sm font-extrabold text-red-700">Rp 0</span>
+                </div>
+
+                <button onclick="addManualItemToCart()" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center space-x-1">
+                  <i class="fa-solid fa-plus"></i>
+                  <span>Tambahkan Ke Keranjang</span>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- SHOPPING CART -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3 h-fit">
+              <div class="flex items-center justify-between border-b pb-2">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1">
+                  <i class="fa-solid fa-cart-shopping text-red-600"></i>
+                  <span>Keranjang Transaksi</span>
+                </h3>
+                <button onclick="clearCart()" class="text-[10px] text-red-600 hover:underline font-medium">Kosongkan</button>
+              </div>
+
+              <div id="cartItemsList" class="space-y-2 max-h-56 lg:max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                <!-- Cart items populated by JS -->
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between text-sm font-extrabold text-slate-800">
+                  <span>TOTAL PENJUALAN</span>
+                  <span id="cartTotalText" class="text-base text-red-700">Rp 0</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Metode Bayar</label>
+                    <select id="cartPaymentType" class="w-full text-xs font-bold bg-white border border-slate-300 rounded-lg p-1.5 focus:ring-1 focus:ring-red-500">
+                      <option value="TUNAI">TUNAI (CASH)</option>
+                      <option value="TEMPO">TEMPO (KREDIT)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Catatan/Keterangan</label>
+                    <input type="text" id="cartNoteInput" placeholder="Optional" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5 focus:ring-1 focus:ring-red-500">
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="processCheckout()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow transition flex items-center justify-center space-x-1.5">
+                <i class="fa-solid fa-check-circle text-sm"></i>
+                <span>SIMPAN & PROSES TRANSAKSI</span>
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- TAB 3: OUTLETS / DJO ROUTE (A/B) -->
+        <section id="tab-outlets" class="tab-content hidden space-y-4">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Daftar Toko / Outlet DJO</h2>
+              <p class="text-xs text-slate-500">Pengelompokan toko berdasarkan rute harian Siklus Minggu A / B</p>
+            </div>
+            <button onclick="openAddOutletModal()" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center space-x-1 shadow-sm w-fit">
+              <i class="fa-solid fa-plus"></i>
+              <span>Tambah Toko Baru</span>
+            </button>
+          </div>
+
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Filter Siklus:</span>
+              <select id="outletFilterCycle" onchange="renderOutletsList()" class="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-md p-1.5">
+                <option value="ALL">Semua Siklus (A & B)</option>
+                <option value="MINGGU_A">Minggu A Sahaja</option>
+                <option value="MINGGU_B">Minggu B Sahaja</option>
+              </select>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Filter Jalur DJO:</span>
+              <select id="outletFilterDjo" onchange="renderOutletsList()" class="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-md p-1.5">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div id="outletsListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Outlet cards populated by JS -->
+          </div>
+
+        </section>
+
+        <!-- TAB 4: STOK VAN -->
+        <section id="tab-stock" class="tab-content hidden space-y-4">
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Sisa Stok Barang Di Van</h2>
+              <p class="text-xs text-slate-500">Stok riil rokok yang siap dijual di mobil sales</p>
+            </div>
+            <span id="stockTotalPacks" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">Total: 0 Bks</span>
+          </div>
+
+          <div id="vanStockListContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Stock items populated by JS -->
+          </div>
+
+        </section>
+
+        <!-- TAB 5: RIWAYAT TRANSAKSI -->
+        <section id="tab-history" class="tab-content hidden space-y-4">
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Riwayat Transaksi Penjualan</h2>
+              <p class="text-xs text-slate-500">Log transaksi kasir dan pembayaran piutang toko</p>
+            </div>
+            <button onclick="clearAllTransactions()" class="text-xs text-red-600 hover:underline font-bold">Reset Transaksi</button>
+          </div>
+
+          <div id="transactionHistoryList" class="space-y-2.5">
+            <!-- History items populated by JS -->
+          </div>
+
+        </section>
+
+        <!-- TAB 6: KELOLA PIUTANG TOKO -->
+        <section id="tab-debts" class="tab-content hidden space-y-4">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Kelola Piutang Toko</h2>
+              <p class="text-xs text-slate-500">Daftar toko yang memiliki tanggungan pembayaran piutang/tempo</p>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-red-200 bg-red-50/30 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-red-700 uppercase tracking-wider block">Total Outstanding Piutang</span>
+              <h3 id="debtsTabTotalAmount" class="text-xl font-extrabold text-red-700 mt-0.5">Rp 0</h3>
+            </div>
+            <div class="text-right">
+              <span id="debtsTabCountBadge" class="text-xs font-extrabold bg-red-100 text-red-700 px-2.5 py-1 rounded-full">0 Toko Memiliki Piutang</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-2">
+            <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Filter DJO:</span>
+            <select id="debtFilterDjo" onchange="renderDebtsList()" class="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-md p-1.5">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div id="debtsListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Debt cards populated by JS -->
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
+    <div class="max-w-md mx-auto grid grid-cols-6 text-center py-1.5">
+      <button onclick="switchTab('home')" id="nav-home" class="nav-btn text-red-700 flex flex-col items-center py-1">
+        <i class="fa-solid fa-chart-pie text-sm"></i>
+        <span class="text-[9px] font-bold mt-0.5">Home</span>
+      </button>
+      <button onclick="switchTab('pos')" id="nav-pos" class="nav-btn text-slate-400 hover:text-slate-600 flex flex-col items-center py-1">
+        <i class="fa-solid fa-cash-register text-sm"></i>
+        <span class="text-[9px] font-bold mt-0.5">Kasir</span>
+      </button>
+      <button onclick="switchTab('outlets')" id="nav-outlets" class="nav-btn text-slate-400 hover:text-slate-600 flex flex-col items-center py-1">
+        <i class="fa-solid fa-store text-sm"></i>
+        <span class="text-[9px] font-bold mt-0.5">Toko</span>
+      </button>
+      <button onclick="switchTab('stock')" id="nav-stock" class="nav-btn text-slate-400 hover:text-slate-600 flex flex-col items-center py-1">
+        <i class="fa-solid fa-truck-ramp-box text-sm"></i>
+        <span class="text-[9px] font-bold mt-0.5">Van</span>
+      </button>
+      <button onclick="switchTab('history')" id="nav-history" class="nav-btn text-slate-400 hover:text-slate-600 flex flex-col items-center py-1">
+        <i class="fa-solid fa-receipt text-sm"></i>
+        <span class="text-[9px] font-bold mt-0.5">Riwayat</span>
+      </button>
+      <button onclick="switchTab('debts')" id="nav-debts" class="nav-btn text-slate-400 hover:text-slate-600 flex flex-col items-center py-1">
+        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+        <span class="text-[9px] font-bold mt-0.5">Piutang</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAL 1: CETAK NOTA / RECEIPT -->
+  <div id="receiptModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <div class="bg-slate-800 text-white p-3 flex items-center justify-between no-print">
+        <h3 class="text-xs font-bold uppercase tracking-wider">Nota Transaksi / Bukti Pembayaran</h3>
+        <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-white text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="printableReceiptModal" class="p-4 bg-white text-slate-900 overflow-y-auto custom-scrollbar font-mono text-xs space-y-3">
+        <div class="text-center border-b border-dashed pb-2">
+          <h2 class="font-extrabold text-sm uppercase">DISTRIBUTOR ROKOK RESMI</h2>
+          <p class="text-[10px] text-slate-500">Sistem Pencatatan Penjualan Sales Canvas</p>
+          <p id="receiptDate" class="text-[10px] text-slate-500 mt-0.5">-</p>
+        </div>
+
+        <div class="space-y-0.5 text-[11px]">
+          <div class="flex justify-between">
+            <span class="text-slate-500">No Nota:</span>
+            <span id="receiptId" class="font-bold">#TRX-0000</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Toko:</span>
+            <span id="receiptOutletName" class="font-bold">Toko -</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Jalur DJO:</span>
+            <span id="receiptDjoName" class="font-bold">DJO SENIN</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Metode Bayar:</span>
+            <span id="receiptPaymentType" class="font-bold">TUNAI</span>
+          </div>
+        </div>
+
+        <div class="border-t border-b border-dashed py-2 space-y-1.5" id="receiptItemsContainer">
+          <!-- Receipt item rows populated by JS -->
+        </div>
+
+        <div class="space-y-1 text-right pt-1 text-[11px]">
+          <div class="flex justify-between font-extrabold text-xs">
+            <span>TOTAL:</span>
+            <span id="receiptTotalAmount">Rp 0</span>
+          </div>
+        </div>
+
+        <div class="text-center border-t border-dashed pt-2 text-[10px] text-slate-500">
+          <p>Terima kasih atas pembelian Anda!</p>
+          <p class="mt-0.5">Barang yang sudah dibeli tidak dapat dikembalikan.</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-100 p-3 flex items-center justify-end space-x-2 border-t no-print">
+        <button onclick="closeReceiptModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg">Tutup</button>
+        <button onclick="triggerPrintReceipt()" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg flex items-center space-x-1">
+          <i class="fa-solid fa-print"></i>
+          <span>Cetak / Save PDF</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: BAYAR PIUTANG -->
+  <div id="payDebtModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4 space-y-3">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Bayar Piutang Toko</h3>
+        <button onclick="closePayDebtModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div>
+        <p id="payDebtOutletName" class="text-sm font-bold text-slate-800">Toko -</p>
+        <p id="payDebtCurrentBalance" class="text-xs text-red-600 font-extrabold mt-0.5">Sisa Piutang: Rp 0</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Nominal Pembayaran (Rp)</label>
+        <input type="number" id="payDebtAmountInput" min="1" placeholder="Masukkan jumlah bayar" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-emerald-700 focus:ring-1 focus:ring-red-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Metode Bayar</label>
+        <select id="payDebtMethodSelect" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium">
+          <option value="TUNAI">TUNAI (CASH)</option>
+          <option value="TRANSFER">TRANSFER BANK</option>
+        </select>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2">
+        <button onclick="closePayDebtModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">Batal</button>
+        <button onclick="submitPayDebt()" class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">Simpan Pembayaran</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: EDIT STOK VAN -->
+  <div id="editStockModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4 space-y-3">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Penyesuaian Stok Van</h3>
+        <button onclick="closeEditStockModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div>
+        <p id="editStockProductName" class="text-sm font-bold text-slate-800">Rokok -</p>
+        <p id="editStockCurrentPacks" class="text-xs text-slate-500 mt-0.5">Stok Saat Ini: 0 Bks</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Stok Baru Dalam Bungkus (Bks)</label>
+        <input type="number" id="editStockNewValueInput" min="0" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-slate-800 focus:ring-1 focus:ring-red-500">
+      </div>
+
+      <div class="grid grid-cols-4 gap-1 pt-1">
+        <button onclick="quickAddStock(10)" class="bg-slate-100 text-slate-700 text-[10px] font-bold py-1 rounded hover:bg-slate-200">+10 Bks</button>
+        <button onclick="quickAddStock(100)" class="bg-slate-100 text-slate-700 text-[10px] font-bold py-1 rounded hover:bg-slate-200">+100 Bks</button>
+        <button onclick="quickAddStock(200)" class="bg-slate-100 text-slate-700 text-[10px] font-bold py-1 rounded hover:bg-slate-200">+1 Bal</button>
+        <button onclick="quickAddStock(800)" class="bg-slate-100 text-slate-700 text-[10px] font-bold py-1 rounded hover:bg-slate-200">+1 Karton</button>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2 border-t">
+        <button onclick="closeEditStockModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">Batal</button>
+        <button onclick="saveEditStock()" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg">Simpan Stok</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: KELOLA DJO -->
+  <div id="manageDjoModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4 space-y-3">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Kelola Rute DJO</h3>
+        <button onclick="closeManageDjoModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
+        <span class="text-xs font-bold text-slate-700 block">Tambah Rute DJO Baru</span>
+        <input type="text" id="newDjoNameInput" placeholder="Nama DJO (mis: DJO MINGGU)" class="w-full text-xs bg-white border border-slate-300 rounded p-1.5">
+        <input type="text" id="newDjoAreaInput" placeholder="Area / Deskripsi Rayon" class="w-full text-xs bg-white border border-slate-300 rounded p-1.5">
+        <button onclick="addNewDjoRoute()" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs font-bold py-1.5 rounded transition">Tambah DJO</button>
+      </div>
+
+      <div class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar" id="manageDjoList">
+        <!-- DJO Edit list populated by JS -->
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeManageDjoModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: TAMBAH TOKO -->
+  <div id="addOutletModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4 space-y-3">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Tambah Toko Baru</h3>
+        <button onclick="closeAddOutletModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Nama Toko</label>
+        <input type="text" id="newOutletName" placeholder="Contoh: Toko Berkah Jaya" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-red-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Pemilik / Kontak</label>
+        <input type="text" id="newOutletOwner" placeholder="Nama Pemilik" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-1 focus:ring-red-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Siklus DJO</label>
+        <select id="newOutletCycle" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold">
+          <option value="MINGGU_A">Minggu A (Minggu 1)</option>
+          <option value="MINGGU_B">Minggu B (Minggu 2)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Kategori Harga Toko</label>
+        <select id="newOutletTier" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold">
+          <option value="SO">Star Outlet (SO) - Harga Terendah</option>
+          <option value="GR">Grosir (GR) - Harga Menengah</option>
+          <option value="RT" selected>Retail / Semi Grosir (RT) - Harga Standar</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Jalur DJO Hari</label>
+        <select id="newOutletDjo" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2 border-t">
+        <button onclick="closeAddOutletModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">Batal</button>
+        <button onclick="saveNewOutlet()" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg">Simpan Toko</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const DEFAULT_DJO = [
+      { id: 'DJO_SENIN', name: 'DJO SENIN', area: 'Rayon Pasar Anyar & Kota' },
+      { id: 'DJO_SELASA', name: 'DJO SELASA', area: 'Rayon Kebon Jeruk & Utara' },
+      { id: 'DJO_RABU', name: 'DJO RABU', area: 'Rayon Cihampelas & Barat' },
+      { id: 'DJO_KAMIS', name: 'DJO KAMIS', area: 'Rayon Buah Batu & Selatan' },
+      { id: 'DJO_JUMAT', name: 'DJO JUMAT', area: 'Rayon Kopo & Margahayu' },
+      { id: 'DJO_SABTU', name: 'DJO SABTU', area: 'Rayon Ujung Berung & Timur' }
+    ];
+
+    const DEFAULT_PRODUCTS = [
+      { id: 'P1', name: 'CNNX SKT', category: 'SKT', stock: 1200 },
+      { id: 'P2', name: 'CNNX B SKT', category: 'SKT', stock: 1000 },
+      { id: 'P3', name: 'HUJAN DUIT SKT', category: 'SKT', stock: 800 },
+      { id: 'P4', name: 'MCB SKT', category: 'SKT', stock: 1500 },
+      { id: 'P5', name: 'MCM SKT', category: 'SKT', stock: 900 },
+      { id: 'P6', name: 'MCG SKT', category: 'SKT', stock: 1100 },
+      { id: 'P7', name: 'PBB SKT', category: 'SKT', stock: 1400 },
+      { id: 'P8', name: 'PBM SKT', category: 'SKT', stock: 1300 },
+      { id: 'P9', name: 'MCB SKM', category: 'SKM', stock: 2000 },
+      { id: 'P10', name: 'MCM SKM', category: 'SKM', stock: 1800 },
+      { id: 'P11', name: 'PBB SKM', category: 'SKM', stock: 1600 },
+      { id: 'P12', name: 'PBM SKM', category: 'SKM', stock: 1700 }
+    ];
+
+    const DEFAULT_OUTLETS = [
+      { id: 'O1', name: 'Toko Berkah Utama', owner: 'Pak Haji Ahmad', tier: 'SO', cycle: 'MINGGU_A', djoId: 'DJO_SENIN', debt: 150000 },
+      { id: 'O2', name: 'Grosir Rejeki Lancar', owner: 'Ibu Siska', tier: 'GR', cycle: 'MINGGU_A', djoId: 'DJO_SENIN', debt: 0 },
+      { id: 'O3', name: 'Warung Pojok Jaya', owner: 'Pak Budi', tier: 'RT', cycle: 'MINGGU_B', djoId: 'DJO_SENIN', debt: 45000 },
+      { id: 'O4', name: 'Toko Sembako Maju', owner: 'Pak Joko', tier: 'GR', cycle: 'MINGGU_A', djoId: 'DJO_SELASA', debt: 0 },
+      { id: 'O5', name: 'Mini Mart Sentosa', owner: 'Ibu Heni', tier: 'SO', cycle: 'MINGGU_B', djoId: 'DJO_SELASA', debt: 220000 }
+    ];
+
+    let appState = {
+      activeCycle: 'MINGGU_A',
+      activeDjoId: 'DJO_SENIN',
+      djoList: [],
+      products: [],
+      outlets: [],
+      cart: [],
+      transactions: [],
+      selectedOutletForPos: null,
+      editingStockProductId: null,
+      payingDebtOutletId: null
+    };
+
+    let performanceChart = null;
+
+    function getFormattedDeviceDate() {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date().toLocaleDateString('id-ID', options);
+    }
+
+    function getUnitPrice(product, tier) {
+      if (!product) return 15000;
+      const pName = (product.name || '').trim().toUpperCase();
+      const pCat = (product.category || '').trim().toUpperCase();
+
+      if (pName === 'CNNX SKT') {
+        if (tier === 'SO') return 15900;
+        if (tier === 'GR') return 16300;
+        return 16500;
+      }
+      if (pCat === 'SKT') {
+        if (tier === 'SO') return 14400;
+        if (tier === 'GR') return 14500;
+        return 15000;
+      }
+      if (pCat === 'SKM') {
+        if (tier === 'SO') return 16600;
+        if (tier === 'GR') return 16700;
+        return 17000;
+      }
+      return 15000;
+    }
+
+    function formatPackUnits(totalPacks) {
+      let remaining = totalPacks || 0;
+      const karton = Math.floor(remaining / 800);
+      remaining %= 800;
+      const bal = Math.floor(remaining / 200);
+      remaining %= 200;
+      const slop = Math.floor(remaining / 10);
+      const bks = remaining % 10;
+
+      let parts = [];
+      if (karton > 0) parts.push(`${karton} krt`);
+      if (bal > 0) parts.push(`${bal} bal`);
+      if (slop > 0) parts.push(`${slop} slop`);
+      if (bks > 0 || parts.length === 0) parts.push(`${bks} bks`);
+
+      return parts.join(' ');
+    }
+
+    function loadAppState() {
+      try {
+        const savedDjo = localStorage.getItem('rokok_sales_djo');
+        const savedProducts = localStorage.getItem('rokok_sales_products');
+        const savedOutlets = localStorage.getItem('rokok_sales_outlets');
+        const savedTransactions = localStorage.getItem('rokok_sales_transactions');
+
+        appState.djoList = savedDjo ? JSON.parse(savedDjo) : DEFAULT_DJO;
+        appState.products = savedProducts ? JSON.parse(savedProducts) : DEFAULT_PRODUCTS;
+        appState.outlets = savedOutlets ? JSON.parse(savedOutlets) : DEFAULT_OUTLETS;
+        appState.transactions = savedTransactions ? JSON.parse(savedTransactions) : [];
+      } catch (e) {
+        console.warn('LocalStorage parse error, restoring defaults', e);
+        appState.djoList = DEFAULT_DJO;
+        appState.products = DEFAULT_PRODUCTS;
+        appState.outlets = DEFAULT_OUTLETS;
+        appState.transactions = [];
+      }
+
+      if (!appState.djoList || !appState.djoList.length) appState.djoList = DEFAULT_DJO;
+      if (!appState.products || !appState.products.length) appState.products = DEFAULT_PRODUCTS;
+      if (!appState.outlets || !appState.outlets.length) appState.outlets = DEFAULT_OUTLETS;
+      if (!appState.transactions) appState.transactions = [];
+    }
+
+    function saveAppState() {
+      try {
+        localStorage.setItem('rokok_sales_djo', JSON.stringify(appState.djoList));
+        localStorage.setItem('rokok_sales_products', JSON.stringify(appState.products));
+        localStorage.setItem('rokok_sales_outlets', JSON.stringify(appState.outlets));
+        localStorage.setItem('rokok_sales_transactions', JSON.stringify(appState.transactions));
+      } catch (e) {
+        console.error('Failed to save to localStorage', e);
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('text-red-700');
+        el.classList.add('text-slate-400');
+      });
+
+      document.querySelectorAll('.sidebar-btn').forEach(el => {
+        el.classList.remove('text-red-400', 'bg-red-950/40');
+        el.classList.add('text-slate-400');
+      });
+
+      const selectedTab = document.getElementById(`tab-${tabName}`);
+      const selectedNav = document.getElementById(`nav-${tabName}`);
+      const selectedSidebarNav = document.getElementById(`sidebar-nav-${tabName}`);
+
+      if (selectedTab) selectedTab.classList.remove('hidden');
+      if (selectedNav) {
+        selectedNav.classList.remove('text-slate-400');
+        selectedNav.classList.add('text-red-700');
+      }
+      if (selectedSidebarNav) {
+        selectedSidebarNav.classList.remove('text-slate-400');
+        selectedSidebarNav.classList.add('text-red-400', 'bg-red-950/40');
+      }
+
+      if (tabName === 'home') renderHomeDashboard();
+      if (tabName === 'pos') renderPosTab();
+      if (tabName === 'outlets') renderOutletsList();
+      if (tabName === 'stock') renderStockTab();
+      if (tabName === 'history') renderHistoryTab();
+      if (tabName === 'debts') renderDebtsList();
+    }
+
+    function setGlobalCycle(cycle) {
+      appState.activeCycle = cycle;
+
+      const btnA = document.getElementById('btnSidebarCycleA');
+      const btnB = document.getElementById('btnSidebarCycleB');
+      if (btnA && btnB) {
+        if (cycle === 'MINGGU_A') {
+          btnA.className = 'py-1 rounded bg-red-700 text-white transition';
+          btnB.className = 'py-1 rounded text-slate-400 hover:text-white transition';
+        } else {
+          btnB.className = 'py-1 rounded bg-red-700 text-white transition';
+          btnA.className = 'py-1 rounded text-slate-400 hover:text-white transition';
+        }
+      }
+
+      const mobileBtn = document.getElementById('mobileCycleToggleBtn');
+      const headerLabel = document.getElementById('headerCycleLabel');
+      if (mobileBtn) mobileBtn.innerText = cycle === 'MINGGU_A' ? 'MINGGU A' : 'MINGGU B';
+      if (headerLabel) headerLabel.innerText = `Siklus: ${cycle === 'MINGGU_A' ? 'MINGGU A' : 'MINGGU B'}`;
+
+      renderAllViews();
+    }
+
+    function toggleCycleMobile() {
+      const nextCycle = appState.activeCycle === 'MINGGU_A' ? 'MINGGU_B' : 'MINGGU_A';
+      setGlobalCycle(nextCycle);
+    }
+
+    function changeActiveDJO(djoId) {
+      appState.activeDjoId = djoId;
+      renderAllViews();
+    }
+
+    function populateDjoDropdowns() {
+      const headerSelect = document.getElementById('djoSelectHeader');
+      const sidebarSelect = document.getElementById('djoSelectSidebar');
+      const outletFilterSelect = document.getElementById('outletFilterDjo');
+      const debtFilterSelect = document.getElementById('debtFilterDjo');
+      const newOutletSelect = document.getElementById('newOutletDjo');
+
+      let optionsHtml = '';
+      appState.djoList.forEach(djo => {
+        optionsHtml += `<option value="${djo.id}">${djo.name}</option>`;
+      });
+
+      if (headerSelect) headerSelect.innerHTML = optionsHtml;
+      if (sidebarSelect) sidebarSelect.innerHTML = optionsHtml;
+      if (newOutletSelect) newOutletSelect.innerHTML = optionsHtml;
+      
+      const filterOptions = `<option value="ALL">Semua Jalur DJO</option>` + optionsHtml;
+      if (outletFilterSelect) outletFilterSelect.innerHTML = filterOptions;
+      if (debtFilterSelect) debtFilterSelect.innerHTML = filterOptions;
+
+      if (headerSelect) headerSelect.value = appState.activeDjoId;
+      if (sidebarSelect) sidebarSelect.value = appState.activeDjoId;
+    }
+
+    function renderAllViews() {
+      populateDjoDropdowns();
+      renderHomeDashboard();
+      renderPosTab();
+      renderOutletsList();
+      renderStockTab();
+      renderHistoryTab();
+      renderDebtsList();
+    }
+
+    function renderHomeDashboard() {
+      const activeDjo = appState.djoList.find(d => d.id === appState.activeDjoId) || appState.djoList[0] || { name: 'DJO SENIN', area: 'Rayon Utama' };
+      
+      const titleEl = document.getElementById('dashDjoTitle');
+      const areaEl = document.getElementById('dashDjoArea');
+      const badgeEl = document.getElementById('dashCycleBadge');
+      const dateEl = document.getElementById('dashDeviceDate');
+
+      if (titleEl) titleEl.innerText = activeDjo.name;
+      if (areaEl) areaEl.innerText = activeDjo.area;
+      if (badgeEl) badgeEl.innerText = appState.activeCycle === 'MINGGU_A' ? 'SIKLUS MINGGU A (1)' : 'SIKLUS MINGGU B (2)';
+      if (dateEl) dateEl.innerText = getFormattedDeviceDate();
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      
+      let todayTotalOmzet = 0;
+      let todayCash = 0;
+      let todayNewDebt = 0;
+
+      appState.transactions.forEach(trx => {
+        if (trx.date && trx.date.startsWith(todayStr) && trx.type === 'SALE') {
+          todayTotalOmzet += (trx.total || 0);
+          if (trx.paymentType === 'TUNAI') todayCash += (trx.total || 0);
+          if (trx.paymentType === 'TEMPO') todayNewDebt += (trx.total || 0);
+        } else if (trx.date && trx.date.startsWith(todayStr) && trx.type === 'DEBT_PAYMENT') {
+          todayCash += (trx.total || 0);
+        }
+      });
+
+      let totalOutstandingDebt = 0;
+      appState.outlets.forEach(o => totalOutstandingDebt += (o.debt || 0));
+
+      document.getElementById('dashTodayOmzet').innerText = `Rp ${todayTotalOmzet.toLocaleString('id-ID')}`;
+      document.getElementById('dashTodayCashSales').innerText = `Rp ${todayCash.toLocaleString('id-ID')}`;
+      document.getElementById('dashTodayNewDebt').innerText = `Rp ${todayNewDebt.toLocaleString('id-ID')}`;
+      document.getElementById('dashTotalOutstandingDebt').innerText = `Rp ${totalOutstandingDebt.toLocaleString('id-ID')}`;
+
+      const djoOutlets = appState.outlets.filter(o => o.djoId === appState.activeDjoId && (o.cycle === appState.activeCycle || !o.cycle));
+      const visitedOutlets = djoOutlets.filter(o => {
+        return appState.transactions.some(t => t.outletId === o.id && t.date && t.date.startsWith(todayStr));
+      });
+
+      const totalCount = djoOutlets.length;
+      const visitedCount = visitedOutlets.length;
+      const pct = totalCount > 0 ? Math.round((visitedCount / totalCount) * 100) : 0;
+
+      document.getElementById('dashVisitedCount').innerText = `${visitedCount} / ${totalCount} Toko (${pct}%)`;
+      document.getElementById('dashVisitedProgressBar').style.width = `${pct}%`;
+
+      const listEl = document.getElementById('dashOutletList');
+      if (listEl) {
+        if (djoOutlets.length === 0) {
+          listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Belum ada toko di jalur ini (${appState.activeCycle}).</p>`;
+        } else {
+          listEl.innerHTML = djoOutlets.map(o => {
+            const isVisited = appState.transactions.some(t => t.outletId === o.id && t.date && t.date.startsWith(todayStr));
+            return `
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-xs border border-slate-100">
+                <div>
+                  <span class="font-bold text-slate-800">${o.name}</span>
+                  <span class="text-[10px] text-slate-500 block">${o.owner || 'Pemilik'} • ${o.tier || 'RT'}</span>
+                </div>
+                <div>
+                  ${isVisited 
+                    ? `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-check mr-0.5"></i> Dikunjungi</span>`
+                    : `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-clock mr-0.5"></i> Belum</span>`
+                  }
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      renderProductPerformanceChart();
+    }
+
+    function renderProductPerformanceChart() {
+      const ctx = document.getElementById('productPerformanceChart');
+      if (!ctx) return;
+
+      const productSalesMap = {};
+      appState.products.forEach(p => productSalesMap[p.name] = 0);
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      appState.transactions.forEach(trx => {
+        const trxDate = new Date(trx.date);
+        if (trx.type === 'SALE' && trxDate >= thirtyDaysAgo) {
+          (trx.items || []).forEach(item => {
+            if (productSalesMap[item.productName] !== undefined) {
+              productSalesMap[item.productName] += (item.subtotal || 0);
+            }
+          });
+        }
+      });
+
+      const labels = Object.keys(productSalesMap);
+      const data = Object.values(productSalesMap);
+
+      if (performanceChart) {
+        performanceChart.destroy();
+      }
+
+      try {
+        performanceChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Omzet Penjualan (Rp)',
+              data: data,
+              backgroundColor: 'rgba(185, 28, 28, 0.85)',
+              borderColor: 'rgba(185, 28, 28, 1)',
+              borderWidth: 1,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  font: { size: 9 },
+                  callback: function(value) {
+                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                    if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                    return value;
+                  }
+                }
+              },
+              x: { ticks: { font: { size: 8 }, maxRotation: 45, minRotation: 45 } }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('Chart rendering postponed', e);
+      }
+    }
+
+    function renderPosTab() {
+      const selectEl = document.getElementById('posOutletSelect');
+      if (!selectEl) return;
+
+      const djoOutlets = appState.outlets.filter(o => o.djoId === appState.activeDjoId && (o.cycle === appState.activeCycle || !o.cycle));
+
+      let optionsHtml = `<option value="">-- Pilih Toko (${appState.activeCycle} - ${appState.activeDjoId}) --</option>`;
+      djoOutlets.forEach(o => {
+        optionsHtml += `<option value="${o.id}">${o.name} (${o.tier})</option>`;
+      });
+
+      selectEl.innerHTML = optionsHtml;
+
+      if (appState.selectedOutletForPos) {
+        selectEl.value = appState.selectedOutletForPos.id;
+        updatePosOutletBadge();
+      } else {
+        const badge = document.getElementById('posOutletBadge');
+        if (badge) badge.classList.add('hidden');
+      }
+
+      renderPosCatalog();
+      populateManualProductSelect();
+      renderCart();
+    }
+
+    function onPosOutletChange(outletId) {
+      if (!outletId) {
+        appState.selectedOutletForPos = null;
+        document.getElementById('posOutletBadge').classList.add('hidden');
+      } else {
+        appState.selectedOutletForPos = appState.outlets.find(o => o.id === outletId) || null;
+        updatePosOutletBadge();
+      }
+      renderPosCatalog();
+    }
+
+    function updatePosOutletBadge() {
+      const o = appState.selectedOutletForPos;
+      if (!o) return;
+
+      const badgeContainer = document.getElementById('posOutletBadge');
+      const nameEl = document.getElementById('posOutletName');
+      const tierBadge = document.getElementById('posOutletTierBadge');
+      const debtInfo = document.getElementById('posOutletDebtInfo');
+      const payDebtBtn = document.getElementById('posPayDebtBtn');
+
+      if (badgeContainer) badgeContainer.classList.remove('hidden');
+      if (nameEl) nameEl.innerText = o.name;
+      if (tierBadge) tierBadge.innerText = o.tier === 'SO' ? 'STAR OUTLET' : o.tier === 'GR' ? 'GROSIR' : 'RETAIL';
+      
+      const debt = o.debt || 0;
+      if (debtInfo) debtInfo.innerText = `Piutang: Rp ${debt.toLocaleString('id-ID')}`;
+
+      if (payDebtBtn) {
+        if (debt > 0) payDebtBtn.classList.remove('hidden');
+        else payDebtBtn.classList.add('hidden');
+      }
+    }
+
+    function switchPosMode(mode) {
+      const catBtn = document.getElementById('btnModeCatalog');
+      const manBtn = document.getElementById('btnModeManual');
+      const catContainer = document.getElementById('posCatalogContainer');
+      const manContainer = document.getElementById('posManualContainer');
+
+      if (mode === 'catalog') {
+        if (catBtn) catBtn.className = 'flex-1 py-1.5 rounded-md bg-white shadow-sm text-red-700 transition';
+        if (manBtn) manBtn.className = 'flex-1 py-1.5 rounded-md text-slate-600 transition';
+        if (catContainer) catContainer.classList.remove('hidden');
+        if (manContainer) manContainer.classList.add('hidden');
+      } else {
+        if (manBtn) manBtn.className = 'flex-1 py-1.5 rounded-md bg-white shadow-sm text-red-700 transition';
+        if (catBtn) catBtn.className = 'flex-1 py-1.5 rounded-md text-slate-600 transition';
+        if (manContainer) manContainer.classList.remove('hidden');
+        if (catContainer) catContainer.classList.add('hidden');
+      }
+    }
+
+    function renderPosCatalog() {
+      const grid = document.getElementById('posProductCatalogGrid');
+      if (!grid) return;
+
+      const tier = appState.selectedOutletForPos ? appState.selectedOutletForPos.tier : 'RT';
+
+      grid.innerHTML = appState.products.map(p => {
+        const unitPrice = getUnitPrice(p, tier);
+        const slopPrice = unitPrice * 10;
+        
+        return `
+          <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">${p.category}</span>
+                <span class="text-[10px] text-slate-400 font-semibold">${formatPackUnits(p.stock)}</span>
+              </div>
+              <h4 class="text-xs font-extrabold text-slate-800 mt-1 leading-tight">${p.name}</h4>
+              <p class="text-xs font-extrabold text-red-700 mt-0.5">Rp ${unitPrice.toLocaleString('id-ID')}<span class="text-[10px] font-normal text-slate-400">/bks</span></p>
+              <p class="text-[10px] text-slate-500">Rp ${slopPrice.toLocaleString('id-ID')}/slop</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1 pt-1 border-t">
+              <button onclick="addToCart('${p.id}', 1, 'Bungkus')" class="bg-red-50 hover:bg-red-100 text-red-700 text-[10px] font-bold py-1 rounded transition">
+                +1 Bks
+              </button>
+              <button onclick="addToCart('${p.id}', 10, 'Slop')" class="bg-red-700 hover:bg-red-800 text-white text-[10px] font-bold py-1 rounded transition">
+                +1 Slop
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function populateManualProductSelect() {
+      const select = document.getElementById('manualProductSelect');
+      if (!select) return;
+
+      select.innerHTML = appState.products.map(p => `
+        <option value="${p.id}">${p.name} (${p.category})</option>
+      `).join('');
+
+      onManualProductSelect();
+    }
+
+    function onManualProductSelect() {
+      const select = document.getElementById('manualProductSelect');
+      if (!select) return;
+
+      const product = appState.products.find(p => p.id === select.value);
+      if (!product) return;
+
+      onManualUnitSelect();
+    }
+
+    function onManualUnitSelect() {
+      const select = document.getElementById('manualProductSelect');
+      if (!select) return;
+
+      const product = appState.products.find(p => p.id === select.value);
+      if (!product) return;
+
+      const unit = document.getElementById('manualUnitSelect').value;
+      const tier = appState.selectedOutletForPos ? appState.selectedOutletForPos.tier : 'RT';
+      const basePackPrice = getUnitPrice(product, tier);
+
+      let unitMultiplier = 1;
+      if (unit === 'Slop') unitMultiplier = 10;
+      if (unit === 'Bal') unitMultiplier = 200;
+      if (unit === 'Karton') unitMultiplier = 800;
+
+      const calculatedUnitPrice = basePackPrice * unitMultiplier;
+      document.getElementById('manualPriceInput').value = calculatedUnitPrice;
+
+      recalcManualTotal();
+    }
+
+    function recalcManualTotal() {
+      const qty = parseInt(document.getElementById('manualQtyInput').value) || 0;
+      const price = parseFloat(document.getElementById('manualPriceInput').value) || 0;
+      const subtotal = qty * price;
+
+      const textEl = document.getElementById('manualSubtotalText');
+      if (textEl) textEl.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+    }
+
+    function addManualItemToCart() {
+      const select = document.getElementById('manualProductSelect');
+      if (!select) return;
+
+      const product = appState.products.find(p => p.id === select.value);
+      if (!product) return;
+
+      const unit = document.getElementById('manualUnitSelect').value;
+      const qty = parseInt(document.getElementById('manualQtyInput').value) || 0;
+      const customPrice = parseFloat(document.getElementById('manualPriceInput').value) || 0;
+
+      if (qty <= 0) {
+        alert('Masukkan jumlah Qty yang valid.');
+        return;
+      }
+
+      let packMultiplier = 1;
+      if (unit === 'Slop') packMultiplier = 10;
+      if (unit === 'Bal') packMultiplier = 200;
+      if (unit === 'Karton') packMultiplier = 800;
+
+      const totalPacksNeeded = qty * packMultiplier;
+
+      if (product.stock < totalPacksNeeded) {
+        alert(`Stok tidak mencukupi! Sisa stok van: ${product.stock} Bks.`);
+        return;
+      }
+
+      const existing = appState.cart.find(c => c.productId === product.id && c.unit === unit && c.unitPrice === customPrice);
+      if (existing) {
+        existing.qty += qty;
+        existing.totalPacks += totalPacksNeeded;
+        existing.subtotal = existing.qty * existing.unitPrice;
+      } else {
+        appState.cart.push({
+          productId: product.id,
+          productName: product.name,
+          unit: unit,
+          unitPrice: customPrice,
+          qty: qty,
+          totalPacks: totalPacksNeeded,
+          subtotal: qty * customPrice
+        });
+      }
+
+      renderCart();
+      alert(`Berhasil menambahkan ${qty} ${unit} ${product.name} ke keranjang.`);
+    }
+
+    function addToCart(productId, packCount, unitLabel) {
+      const product = appState.products.find(p => p.id === productId);
+      if (!product) return;
+
+      if (product.stock < packCount) {
+        alert(`Stok tidak mencukupi! Sisa stok van: ${product.stock} Bks.`);
+        return;
+      }
+
+      const tier = appState.selectedOutletForPos ? appState.selectedOutletForPos.tier : 'RT';
+      const bksPrice = getUnitPrice(product, tier);
+      const itemUnitPrice = bksPrice * packCount;
+
+      const existing = appState.cart.find(c => c.productId === product.id && c.unit === unitLabel);
+      if (existing) {
+        existing.qty += 1;
+        existing.totalPacks += packCount;
+        existing.subtotal = existing.qty * existing.unitPrice;
+      } else {
+        appState.cart.push({
+          productId: product.id,
+          productName: product.name,
+          unit: unitLabel,
+          unitPrice: itemUnitPrice,
+          qty: 1,
+          totalPacks: packCount,
+          subtotal: itemUnitPrice
+        });
+      }
+
+      renderCart();
+    }
+
+    function updateCartItemQty(index, newQty) {
+      if (newQty <= 0) {
+        appState.cart.splice(index, 1);
+      } else {
+        const item = appState.cart[index];
+        const singleUnitPacks = item.totalPacks / item.qty;
+        item.qty = newQty;
+        item.totalPacks = newQty * singleUnitPacks;
+        item.subtotal = newQty * item.unitPrice;
+      }
+      renderCart();
+    }
+
+    function clearCart() {
+      appState.cart = [];
+      renderCart();
+    }
+
+    function renderCart() {
+      const listEl = document.getElementById('cartItemsList');
+      const totalEl = document.getElementById('cartTotalText');
+
+      if (!listEl || !totalEl) return;
+
+      if (appState.cart.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Keranjang masih kosong.</p>`;
+        totalEl.innerText = 'Rp 0';
+        return;
+      }
+
+      let grandTotal = 0;
+      listEl.innerHTML = appState.cart.map((item, idx) => {
+        grandTotal += item.subtotal;
+        return `
+          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-xs border border-slate-100">
+            <div>
+              <span class="font-bold text-slate-800">${item.productName}</span>
+              <span class="text-[10px] text-slate-500 block">${item.qty} ${item.unit} @ Rp ${item.unitPrice.toLocaleString('id-ID')}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-red-700">Rp ${item.subtotal.toLocaleString('id-ID')}</span>
+              <div class="flex items-center border rounded bg-white">
+                <button onclick="updateCartItemQty(${idx}, ${item.qty - 1})" class="px-1.5 py-0.5 text-slate-600 font-bold hover:bg-slate-100">-</button>
+                <span class="px-2 text-[10px] font-bold">${item.qty}</span>
+                <button onclick="updateCartItemQty(${idx}, ${item.qty + 1})" class="px-1.5 py-0.5 text-slate-600 font-bold hover:bg-slate-100">+</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      totalEl.innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+    }
+
+    function processCheckout() {
+      if (!appState.selectedOutletForPos) {
+        alert('Silakan pilih toko / outlet tujuan terlebih dahulu!');
+        return;
+      }
+
+      if (appState.cart.length === 0) {
+        alert('Keranjang belanja masih kosong!');
+        return;
+      }
+
+      for (const item of appState.cart) {
+        const prod = appState.products.find(p => p.id === item.productId);
+        if (!prod || prod.stock < item.totalPacks) {
+          alert(`Stok ${item.productName} tidak mencukupi untuk transaksi ini!`);
+          return;
+        }
+      }
+
+      const paymentType = document.getElementById('cartPaymentType').value;
+      const note = document.getElementById('cartNoteInput').value;
+
+      let grandTotal = 0;
+      appState.cart.forEach(c => grandTotal += c.subtotal);
+
+      appState.cart.forEach(item => {
+        const prod = appState.products.find(p => p.id === item.productId);
+        if (prod) {
+          prod.stock -= item.totalPacks;
+        }
+      });
+
+      if (paymentType === 'TEMPO') {
+        appState.selectedOutletForPos.debt = (appState.selectedOutletForPos.debt || 0) + grandTotal;
+      }
+
+      const nowDeviceDate = new Date().toISOString();
+      const trxId = 'TRX-' + Date.now().toString().slice(-6);
+
+      const newTrx = {
+        id: trxId,
+        type: 'SALE',
+        date: nowDeviceDate,
+        outletId: appState.selectedOutletForPos.id,
+        outletName: appState.selectedOutletForPos.name,
+        djoId: appState.activeDjoId,
+        cycle: appState.activeCycle,
+        items: [...appState.cart],
+        total: grandTotal,
+        paymentType: paymentType,
+        note: note
+      };
+
+      appState.transactions.unshift(newTrx);
+      saveAppState();
+
+      appState.cart = [];
+      const noteInput = document.getElementById('cartNoteInput');
+      if (noteInput) noteInput.value = '';
+
+      renderAllViews();
+      alert(`Transaksi #${trxId} Berhasil Disimpan!`);
+
+      openReceiptModal(newTrx);
+    }
+
+    function openPayDebtModal(outletId = null) {
+      const targetId = outletId || (appState.selectedOutletForPos ? appState.selectedOutletForPos.id : null);
+      if (!targetId) return;
+
+      const outlet = appState.outlets.find(o => o.id === targetId);
+      if (!outlet) return;
+
+      appState.payingDebtOutletId = outlet.id;
+      document.getElementById('payDebtOutletName').innerText = outlet.name;
+      document.getElementById('payDebtCurrentBalance').innerText = `Sisa Piutang: Rp ${(outlet.debt || 0).toLocaleString('id-ID')}`;
+      document.getElementById('payDebtAmountInput').value = outlet.debt || '';
+
+      document.getElementById('payDebtModal').classList.remove('hidden');
+    }
+
+    function closePayDebtModal() {
+      document.getElementById('payDebtModal').classList.add('hidden');
+      appState.payingDebtOutletId = null;
+    }
+
+    function submitPayDebt() {
+      if (!appState.payingDebtOutletId) return;
+
+      const outlet = appState.outlets.find(o => o.id === appState.payingDebtOutletId);
+      if (!outlet) return;
+
+      const payAmount = parseFloat(document.getElementById('payDebtAmountInput').value) || 0;
+      const payMethod = document.getElementById('payDebtMethodSelect').value;
+
+      if (payAmount <= 0) {
+        alert('Masukkan nominal pembayaran yang valid.');
+        return;
+      }
+
+      if (payAmount > outlet.debt) {
+        alert(`Nominal bayar melebihi sisa piutang (Rp ${outlet.debt.toLocaleString('id-ID')}).`);
+        return;
+      }
+
+      outlet.debt -= payAmount;
+
+      const trxId = 'PAY-' + Date.now().toString().slice(-6);
+      const newTrx = {
+        id: trxId,
+        type: 'DEBT_PAYMENT',
+        date: new Date().toISOString(),
+        outletId: outlet.id,
+        outletName: outlet.name,
+        djoId: outlet.djoId,
+        cycle: outlet.cycle || appState.activeCycle,
+        items: [{ productName: 'Pelunasan / Pembayaran Piutang Toko', qty: 1, unit: 'Trx', subtotal: payAmount }],
+        total: payAmount,
+        paymentType: payMethod,
+        note: 'Pembayaran Piutang'
+      };
+
+      appState.transactions.unshift(newTrx);
+      saveAppState();
+
+      closePayDebtModal();
+      renderAllViews();
+
+      alert(`Pembayaran Piutang Toko ${outlet.name} Sebesar Rp ${payAmount.toLocaleString('id-ID')} Berhasil Disimpan!`);
+      openReceiptModal(newTrx);
+    }
+
+    function renderDebtsList() {
+      const djoFilterSelect = document.getElementById('debtFilterDjo');
+      const djoFilter = djoFilterSelect ? djoFilterSelect.value : 'ALL';
+      const container = document.getElementById('debtsListContainer');
+
+      let debtOutlets = appState.outlets.filter(o => (o.debt || 0) > 0);
+
+      if (djoFilter !== 'ALL') {
+        debtOutlets = debtOutlets.filter(o => o.djoId === djoFilter);
+      }
+
+      let grandTotalDebt = 0;
+      appState.outlets.forEach(o => grandTotalDebt += (o.debt || 0));
+
+      const countBadge = document.getElementById('debtsTabCountBadge');
+      const totalAmountEl = document.getElementById('debtsTabTotalAmount');
+      
+      if (totalAmountEl) totalAmountEl.innerText = `Rp ${grandTotalDebt.toLocaleString('id-ID')}`;
+      if (countBadge) countBadge.innerText = `${debtOutlets.length} Toko Memiliki Piutang`;
+
+      if (!container) return;
+
+      if (debtOutlets.length === 0) {
+        container.innerHTML = `<div class="col-span-full bg-white p-6 text-center text-xs text-slate-400 rounded-xl border border-slate-200">Tidak ada toko dengan tanggungan piutang saat ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = debtOutlets.map(o => {
+        const djo = appState.djoList.find(d => d.id === o.djoId);
+        const debt = o.debt || 0;
+
+        return `
+          <div class="bg-white p-3.5 rounded-xl border border-red-200 shadow-sm space-y-2.5">
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-red-100 text-red-700 uppercase">${o.cycle || 'A'} • ${o.tier}</span>
+                <h3 class="text-sm font-bold text-slate-800 mt-1">${o.name}</h3>
+                <p class="text-xs text-slate-500">${o.owner || 'Pemilik'} • <span class="font-bold text-slate-700">${djo ? djo.name : o.djoId}</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 uppercase block font-semibold">Tanggungan</span>
+                <span class="text-sm font-extrabold text-red-600">Rp ${debt.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t text-xs">
+              <button onclick="openPayDebtModal('${o.id}')" class="bg-emerald-600 text-white text-xs py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition flex items-center justify-center space-x-1">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Bayar Piutang</span>
+              </button>
+
+              <button onclick="clearOutletDebt('${o.id}')" class="bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 text-xs py-1.5 rounded-lg font-bold transition flex items-center justify-center space-x-1">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Hapus Piutang</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearOutletDebt(outletId) {
+      const outlet = appState.outlets.find(o => o.id === outletId);
+      if (!outlet) return;
+
+      if (confirm(`Apakah Anda yakin ingin menghapus/mereset piutang toko "${outlet.name}" (Rp ${outlet.debt.toLocaleString('id-ID')}) menjadi Rp 0?`)) {
+        outlet.debt = 0;
+        saveAppState();
+        renderAllViews();
+        alert(`Piutang toko ${outlet.name} berhasil dihapus.`);
+      }
+    }
+
+    function openReceiptModal(trx) {
+      const modal = document.getElementById('receiptModal');
+      if (!modal) return;
+
+      document.getElementById('receiptId').innerText = `#${trx.id}`;
+      document.getElementById('receiptOutletName').innerText = trx.outletName;
+      
+      const djo = appState.djoList.find(d => d.id === trx.djoId);
+      document.getElementById('receiptDjoName').innerText = `${djo ? djo.name : trx.djoId} (${trx.cycle || 'A'})`;
+      document.getElementById('receiptPaymentType').innerText = trx.paymentType;
+
+      const dt = new Date(trx.date);
+      document.getElementById('receiptDate').innerText = dt.toLocaleString('id-ID');
+
+      const itemsContainer = document.getElementById('receiptItemsContainer');
+      itemsContainer.innerHTML = (trx.items || []).map(item => `
+        <div class="flex justify-between items-start text-[11px]">
+          <div>
+            <span class="font-bold block">${item.productName}</span>
+            <span class="text-[10px] text-slate-500">${item.qty} ${item.unit} ${item.unitPrice ? `@ Rp ${item.unitPrice.toLocaleString('id-ID')}` : ''}</span>
+          </div>
+          <span class="font-bold">Rp ${item.subtotal.toLocaleString('id-ID')}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('receiptTotalAmount').innerText = `Rp ${trx.total.toLocaleString('id-ID')}`;
+      modal.classList.remove('hidden');
+    }
+
+    function closeReceiptModal() {
+      const modal = document.getElementById('receiptModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function triggerPrintReceipt() {
+      window.print();
+    }
+
+    function renderOutletsList() {
+      const cycleFilterEl = document.getElementById('outletFilterCycle');
+      const djoFilterEl = document.getElementById('outletFilterDjo');
+      
+      const cycleFilter = cycleFilterEl ? cycleFilterEl.value : 'ALL';
+      const djoFilter = djoFilterEl ? djoFilterEl.value : 'ALL';
+      const container = document.getElementById('outletsListContainer');
+
+      if (!container) return;
+
+      let filtered = appState.outlets;
+
+      if (cycleFilter !== 'ALL') {
+        filtered = filtered.filter(o => o.cycle === cycleFilter || (!o.cycle && cycleFilter === 'MINGGU_A'));
+      }
+
+      if (djoFilter !== 'ALL') {
+        filtered = filtered.filter(o => o.djoId === djoFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full bg-white p-4 text-center text-xs text-slate-400 rounded-xl border border-slate-200">Tidak ada toko ditemukan.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(o => {
+        const djo = appState.djoList.find(d => d.id === o.djoId);
+        const debt = o.debt || 0;
+        const cycle = o.cycle || 'MINGGU_A';
+
+        return `
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-2.5">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center space-x-1 mb-1">
+                  <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${o.tier === 'SO' ? 'bg-purple-100 text-purple-700' : o.tier === 'GR' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}">${o.tier === 'SO' ? 'SO' : o.tier === 'GR' ? 'GROSIR' : 'RETAIL'}</span>
+                  <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${cycle === 'MINGGU_A' ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'}">${cycle === 'MINGGU_A' ? 'MINGGU A' : 'MINGGU B'}</span>
+                </div>
+                <h3 class="text-sm font-bold text-slate-800">${o.name}</h3>
+                <p class="text-xs text-slate-500">${o.owner || 'Pemilik'} • <span class="font-bold text-slate-700">${djo ? djo.name : o.djoId}</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 uppercase block font-semibold">Piutang</span>
+                <span class="text-xs font-extrabold ${debt > 0 ? 'text-red-600' : 'text-slate-700'}">Rp ${debt.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 block mb-0.5">Siklus DJO:</span>
+                <select onchange="moveOutletCycle('${o.id}', this.value)" class="w-full text-[10px] font-bold bg-slate-100 border rounded p-1">
+                  <option value="MINGGU_A" ${cycle === 'MINGGU_A' ? 'selected' : ''}>Minggu A</option>
+                  <option value="MINGGU_B" ${cycle === 'MINGGU_B' ? 'selected' : ''}>Minggu B</option>
+                </select>
+              </div>
+
+              <div>
+                <span class="text-[10px] text-slate-400 block mb-0.5">Pindah Rute:</span>
+                <select onchange="moveOutletDjo('${o.id}', this.value)" class="w-full text-[10px] font-bold bg-slate-100 border rounded p-1">
+                  ${appState.djoList.map(d => `<option value="${d.id}" ${d.id === o.djoId ? 'selected' : ''}>${d.name}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-2 pt-1">
+              ${debt > 0 
+                ? `<button onclick="openPayDebtModal('${o.id}')" class="flex-1 bg-emerald-600 text-white text-xs py-1.5 rounded-lg font-bold hover:bg-emerald-700 transition">Bayar Piutang</button>`
+                : ''
+              }
+              <button onclick="deleteOutlet('${o.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs py-1.5 px-3 rounded-lg font-bold transition flex items-center justify-center space-x-1 ${debt > 0 ? '' : 'w-full'}">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Hapus Toko</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteOutlet(outletId) {
+      const outlet = appState.outlets.find(o => o.id === outletId);
+      if (!outlet) return;
+
+      if (confirm(`Apakah Anda yakin ingin menghapus toko "${outlet.name}" dari sistem?`)) {
+        appState.outlets = appState.outlets.filter(o => o.id !== outletId);
+        
+        if (appState.selectedOutletForPos && appState.selectedOutletForPos.id === outletId) {
+          appState.selectedOutletForPos = null;
+        }
+
+        saveAppState();
+        renderAllViews();
+        alert(`Toko ${outlet.name} berhasil dihapus.`);
+      }
+    }
+
+    function moveOutletCycle(outletId, newCycle) {
+      const outlet = appState.outlets.find(o => o.id === outletId);
+      if (outlet) {
+        outlet.cycle = newCycle;
+        saveAppState();
+        renderAllViews();
+      }
+    }
+
+    function moveOutletDjo(outletId, newDjoId) {
+      const outlet = appState.outlets.find(o => o.id === outletId);
+      if (outlet) {
+        outlet.djoId = newDjoId;
+        saveAppState();
+        renderAllViews();
+      }
+    }
+
+    function openAddOutletModal() {
+      document.getElementById('addOutletModal').classList.remove('hidden');
+    }
+    function closeAddOutletModal() {
+      document.getElementById('addOutletModal').classList.add('hidden');
+    }
+    function saveNewOutlet() {
+      const name = document.getElementById('newOutletName').value.trim();
+      const owner = document.getElementById('newOutletOwner').value.trim();
+      const cycle = document.getElementById('newOutletCycle').value;
+      const tier = document.getElementById('newOutletTier').value;
+      const djoId = document.getElementById('newOutletDjo').value;
+
+      if (!name) {
+        alert('Nama toko wajib diisi!');
+        return;
+      }
+
+      const newObj = {
+        id: 'O' + Date.now().toString().slice(-5),
+        name: name,
+        owner: owner || 'Pemilik',
+        tier: tier,
+        cycle: cycle,
+        djoId: djoId,
+        debt: 0
+      };
+
+      appState.outlets.push(newObj);
+      saveAppState();
+      closeAddOutletModal();
+      renderAllViews();
+      alert(`Toko ${name} berhasil ditambahkan!`);
+    }
+
+    function openManageDjoModal() {
+      renderManageDjoList();
+      document.getElementById('manageDjoModal').classList.remove('hidden');
+    }
+    function closeManageDjoModal() {
+      document.getElementById('manageDjoModal').classList.add('hidden');
+    }
+    function renderManageDjoList() {
+      const listEl = document.getElementById('manageDjoList');
+      if (!listEl) return;
+
+      listEl.innerHTML = appState.djoList.map((djo, idx) => `
+        <div class="bg-slate-50 p-2 rounded border border-slate-200 text-xs space-y-1">
+          <div class="flex items-center justify-between">
+            <input type="text" value="${djo.name}" onchange="updateDjoName(${idx}, this.value)" class="font-bold text-slate-800 bg-transparent border-b border-dashed border-slate-400 focus:outline-none">
+            <button onclick="deleteDjoRoute(${idx})" class="text-red-600 hover:text-red-800 p-1"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+          <input type="text" value="${djo.area}" onchange="updateDjoArea(${idx}, this.value)" class="text-[10px] text-slate-500 w-full bg-transparent border-b border-dashed border-slate-300 focus:outline-none">
+        </div>
+      `).join('');
+    }
+
+    function deleteDjoRoute(idx) {
+      const targetDjo = appState.djoList[idx];
+      if (!targetDjo) return;
+
+      if (confirm(`Hapus rute DJO "${targetDjo.name}"?`)) {
+        appState.djoList.splice(idx, 1);
+        if (appState.activeDjoId === targetDjo.id && appState.djoList.length > 0) {
+          appState.activeDjoId = appState.djoList[0].id;
+        }
+        saveAppState();
+        renderManageDjoList();
+        populateDjoDropdowns();
+        renderAllViews();
+      }
+    }
+
+    function updateDjoName(idx, val) {
+      if (val.trim()) appState.djoList[idx].name = val.trim();
+      saveAppState();
+      populateDjoDropdowns();
+    }
+
+    function updateDjoArea(idx, val) {
+      appState.djoList[idx].area = val.trim();
+      saveAppState();
+    }
+
+    function addNewDjoRoute() {
+      const name = document.getElementById('newDjoNameInput').value.trim();
+      const area = document.getElementById('newDjoAreaInput').value.trim();
+
+      if (!name) {
+        alert('Nama DJO wajib diisi!');
+        return;
+      }
+
+      const id = 'DJO_' + Date.now().toString().slice(-5);
+      appState.djoList.push({ id, name, area: area || 'Area Baru' });
+      saveAppState();
+
+      document.getElementById('newDjoNameInput').value = '';
+      document.getElementById('newDjoAreaInput').value = '';
+
+      renderManageDjoList();
+      populateDjoDropdowns();
+      alert(`Rute DJO ${name} berhasil dibuat!`);
+    }
+
+    function renderStockTab() {
+      const container = document.getElementById('vanStockListContainer');
+      if (!container) return;
+
+      let totalPacks = 0;
+
+      container.innerHTML = appState.products.map(p => {
+        totalPacks += p.stock;
+        return `
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">${p.category}</span>
+              <h4 class="text-xs font-extrabold text-slate-800 mt-1">${p.name}</h4>
+              <p class="text-xs font-extrabold text-slate-700 mt-0.5">${formatPackUnits(p.stock)}</p>
+            </div>
+            <button onclick="openEditStockModal('${p.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-300 transition flex items-center space-x-1">
+              <i class="fa-solid fa-pen"></i>
+              <span>Edit Stok</span>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      const totalPacksEl = document.getElementById('stockTotalPacks');
+      if (totalPacksEl) totalPacksEl.innerText = `Total: ${totalPacks} Bks`;
+    }
+
+    function openEditStockModal(productId) {
+      const product = appState.products.find(p => p.id === productId);
+      if (!product) return;
+
+      appState.editingStockProductId = product.id;
+      document.getElementById('editStockProductName').innerText = product.name;
+      document.getElementById('editStockCurrentPacks').innerText = `Stok Saat Ini: ${product.stock} Bks (${formatPackUnits(product.stock)})`;
+      document.getElementById('editStockNewValueInput').value = product.stock;
+
+      document.getElementById('editStockModal').classList.remove('hidden');
+    }
+
+    function closeEditStockModal() {
+      document.getElementById('editStockModal').classList.add('hidden');
+      appState.editingStockProductId = null;
+    }
+
+    function quickAddStock(amount) {
+      const input = document.getElementById('editStockNewValueInput');
+      const cur = parseInt(input.value) || 0;
+      input.value = cur + amount;
+    }
+
+    function saveEditStock() {
+      if (!appState.editingStockProductId) return;
+
+      const product = appState.products.find(p => p.id === appState.editingStockProductId);
+      if (!product) return;
+
+      const val = parseInt(document.getElementById('editStockNewValueInput').value);
+      if (isNaN(val) || val < 0) {
+        alert('Masukkan angka stok yang valid.');
+        return;
+      }
+
+      product.stock = val;
+      saveAppState();
+      closeEditStockModal();
+      renderAllViews();
+      alert(`Stok ${product.name} berhasil diperbarui menjadi ${val} Bks.`);
+    }
+
+    function renderHistoryTab() {
+      const container = document.getElementById('transactionHistoryList');
+      if (!container) return;
+
+      if (appState.transactions.length === 0) {
+        container.innerHTML = `<div class="bg-white p-4 text-center text-xs text-slate-400 rounded-xl border border-slate-200">Belum ada riwayat transaksi.</div>`;
+        return;
+      }
+
+      container.innerHTML = appState.transactions.map(trx => {
+        const dt = new Date(trx.date).toLocaleString('id-ID');
+        const isSale = trx.type === 'SALE';
+
+        return `
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isSale ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}">${isSale ? 'PENJUALAN' : 'BAYAR PIUTANG'}</span>
+                <span class="text-[10px] text-slate-400 ml-1">#${trx.id}</span>
+              </div>
+              <span class="text-[10px] font-semibold text-slate-400">${dt}</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800">${trx.outletName}</h4>
+              <span class="text-xs font-extrabold ${isSale ? 'text-red-700' : 'text-emerald-600'}">Rp ${trx.total.toLocaleString('id-ID')}</span>
+            </div>
+
+            <div class="text-[10px] text-slate-500 border-t pt-1 flex items-center justify-between">
+              <span>Metode: <strong class="text-slate-700">${trx.paymentType}</strong></span>
+              <button onclick='openReceiptModal(${JSON.stringify(trx)})' class="text-red-700 font-bold hover:underline flex items-center space-x-0.5">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Cetak Nota</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearAllTransactions() {
+      if (confirm('Apakah Anda yakin ingin mengosongkan seluruh riwayat transaksi?')) {
+        appState.transactions = [];
+        saveAppState();
+        renderAllViews();
+      }
+    }
+
+    // Direct Safe Init Execution
+    function initApp() {
+      loadAppState();
+      renderAllViews();
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(initApp, 0);
+    } else {
+      document.addEventListener('DOMContentLoaded', initApp);
+    }
+  </script>
+</body>
+</html>
