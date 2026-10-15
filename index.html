@@ -153,12 +153,37 @@
               <h2 id="dashDjoTitle" class="text-xl lg:text-2xl font-extrabold mt-1">DJO SENIN</h2>
               <p id="dashDjoArea" class="text-xs text-red-100 opacity-90 mt-0.5">Rayon Pasar Anyar & Kota</p>
             </div>
-            <button onclick="openManageDjoModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1">
-              <i class="fa-solid fa-pen-to-square"></i>
-              <span>Kelola DJO</span>
-            </button>
+            <div class="flex items-center space-x-2">
+              <button onclick="openSetTargetModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1">
+                <i class="fa-solid fa-bullseye"></i>
+                <span>Atur Target</span>
+              </button>
+              <button onclick="openManageDjoModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Kelola DJO</span>
+              </button>
+            </div>
           </div>
 
+          <!-- TARGET VS PENACAPAIAN WIDGET -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
+                <i class="fa-solid fa-bullseye text-red-600"></i>
+                <span>Pencapaian Target Penjualan Hari Ini</span>
+              </span>
+              <span id="dashTargetProgressPercent" class="text-xs font-extrabold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div id="dashTargetProgressBar" class="bg-red-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center justify-between text-xs pt-1">
+              <span class="text-slate-500 font-medium">Terjual Hari Ini: <strong id="dashSalesPacksToday" class="text-slate-800">0 Bks</strong></span>
+              <span class="text-slate-500 font-medium">Target Harian: <strong id="dashTargetPacksGoal" class="text-red-700">1.000 Bks</strong></span>
+            </div>
+          </div>
+
+          <!-- KEY METRICS CARDS -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
               <span class="text-[11px] font-bold text-slate-500 uppercase block">Omzet Hari Ini</span>
@@ -178,22 +203,11 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <h3 class="text-xs font-bold text-slate-700 uppercase mb-3">Performa Omzet Per Produk (30 Hari)</h3>
-              <div class="relative w-full h-56 lg:h-64">
-                <canvas id="productPerformanceChart"></canvas>
-              </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-xs font-bold text-slate-700 uppercase">Kunjungan Toko DJO</h3>
-                <span id="dashVisitedCount" class="text-xs font-bold text-red-600">0 / 0 Toko</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2 mb-3">
-                <div id="dashVisitedProgressBar" class="bg-red-600 h-2 rounded-full" style="width: 0%"></div>
-              </div>
-              <div id="dashOutletList" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar"></div>
+          <!-- PERFORMANCE CHART 30 DAYS -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <h3 class="text-xs font-bold text-slate-700 uppercase mb-3">Performa Omzet Per Produk (30 Hari)</h3>
+            <div class="relative w-full h-64 lg:h-72">
+              <canvas id="productPerformanceChart"></canvas>
             </div>
           </div>
         </section>
@@ -265,7 +279,7 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs font-medium text-slate-600 mb-1">Harga Satuan (Rp) <span class="text-[10px] text-slate-400">(Otomatis Menyesuaikan Kategori Toko)</span></label>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Harga Satuan (Rp)</label>
                   <input type="number" id="manualPriceInput" min="0" oninput="recalcManualTotal()" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-emerald-700">
                 </div>
 
@@ -432,7 +446,24 @@
     </div>
   </nav>
 
-  <!-- MODALS -->
+  <!-- MODAL SET TARGET -->
+  <div id="setTargetModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4 space-y-3">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-xs font-bold text-slate-800 uppercase">Pengaturan Target Penjualan Harian</h3>
+        <button onclick="closeSetTargetModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Target Harian (Satuan Bungkus / Bks)</label>
+        <input type="number" id="dailyTargetPacksInput" min="1" placeholder="Masukkan target bungkus" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-red-700">
+      </div>
+      <div class="pt-2 flex justify-end space-x-2 border-t">
+        <button onclick="closeSetTargetModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">Batal</button>
+        <button onclick="saveDailyTarget()" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg">Simpan Target</button>
+      </div>
+    </div>
+  </div>
+
   <!-- RECEIPT MODAL -->
   <div id="receiptModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
@@ -640,6 +671,7 @@
     let appState = {
       activeCycle: 'MINGGU_A',
       activeDjoId: 'DJO_SENIN',
+      dailyTargetPacks: 1000,
       djoList: [...DEFAULT_DJO],
       products: [...DEFAULT_PRODUCTS],
       outlets: [...DEFAULT_OUTLETS],
@@ -657,7 +689,6 @@
       return new Date().toLocaleDateString('id-ID', options);
     }
 
-    // PRICING MATRIX PER KATEGORI TOKO
     function getUnitPrice(product, tier) {
       const pName = product.name.trim().toUpperCase();
       const pCat = product.category.trim().toUpperCase();
@@ -707,16 +738,19 @@
         const savedProducts = localStorage.getItem('rokok_sales_products');
         const savedOutlets = localStorage.getItem('rokok_sales_outlets');
         const savedTransactions = localStorage.getItem('rokok_sales_transactions');
+        const savedTarget = localStorage.getItem('rokok_sales_target');
 
         appState.djoList = savedDjo ? JSON.parse(savedDjo) : DEFAULT_DJO;
         appState.products = savedProducts ? JSON.parse(savedProducts) : DEFAULT_PRODUCTS;
         appState.outlets = savedOutlets ? JSON.parse(savedOutlets) : DEFAULT_OUTLETS;
         appState.transactions = savedTransactions ? JSON.parse(savedTransactions) : [];
+        appState.dailyTargetPacks = savedTarget ? parseInt(savedTarget) : 1000;
       } catch (e) {
         appState.djoList = [...DEFAULT_DJO];
         appState.products = [...DEFAULT_PRODUCTS];
         appState.outlets = [...DEFAULT_OUTLETS];
         appState.transactions = [];
+        appState.dailyTargetPacks = 1000;
       }
     }
 
@@ -726,6 +760,7 @@
         localStorage.setItem('rokok_sales_products', JSON.stringify(appState.products));
         localStorage.setItem('rokok_sales_outlets', JSON.stringify(appState.outlets));
         localStorage.setItem('rokok_sales_transactions', JSON.stringify(appState.transactions));
+        localStorage.setItem('rokok_sales_target', appState.dailyTargetPacks.toString());
 
         syncToFirebase();
       } catch (e) {
@@ -740,6 +775,7 @@
           products: appState.products,
           outlets: appState.outlets,
           transactions: appState.transactions,
+          dailyTargetPacks: appState.dailyTargetPacks,
           updatedAt: new Date().toISOString()
         });
       } catch (err) {
@@ -756,6 +792,7 @@
           if (data.products) appState.products = data.products;
           if (data.outlets) appState.outlets = data.outlets;
           if (data.transactions) appState.transactions = data.transactions;
+          if (data.dailyTargetPacks) appState.dailyTargetPacks = data.dailyTargetPacks;
           
           saveAppState();
           renderAllViews();
@@ -839,6 +876,7 @@
       renderDebtsList();
     }
 
+    // DASHBOARD & WIDGET TARGET VS PENCAPAIAN (SATUAN BUNGKUS)
     function renderHomeDashboard() {
       const activeDjo = appState.djoList.find(d => d.id === appState.activeDjoId) || appState.djoList[0];
       
@@ -848,17 +886,33 @@
       document.getElementById('dashDeviceDate').innerText = getFormattedDeviceDate();
 
       const todayStr = new Date().toISOString().split('T')[0];
-      let todayTotalOmzet = 0, todayCash = 0, todayNewDebt = 0;
+      let todayTotalOmzet = 0, todayCash = 0, todayNewDebt = 0, todayPacksSold = 0;
 
       appState.transactions.forEach(trx => {
         if (trx.date.startsWith(todayStr) && trx.type === 'SALE') {
           todayTotalOmzet += trx.total;
           if (trx.paymentType === 'TUNAI') todayCash += trx.total;
           if (trx.paymentType === 'TEMPO') todayNewDebt += trx.total;
+
+          // Hitung total bungkus terjual hari ini
+          if (trx.items && Array.isArray(trx.items)) {
+            trx.items.forEach(item => {
+              todayPacksSold += (item.totalPacks || 0);
+            });
+          }
         } else if (trx.date.startsWith(todayStr) && trx.type === 'DEBT_PAYMENT') {
           todayCash += trx.total;
         }
       });
+
+      // Hitung persentase target vs pencapaian
+      const targetGoal = appState.dailyTargetPacks || 1000;
+      const progressPct = Math.min(100, Math.round((todayPacksSold / targetGoal) * 100));
+
+      document.getElementById('dashSalesPacksToday').innerText = `${todayPacksSold.toLocaleString('id-ID')} Bks`;
+      document.getElementById('dashTargetPacksGoal').innerText = `${targetGoal.toLocaleString('id-ID')} Bks`;
+      document.getElementById('dashTargetProgressPercent').innerText = `${progressPct}%`;
+      document.getElementById('dashTargetProgressBar').style.width = `${progressPct}%`;
 
       let totalOutstandingDebt = 0;
       appState.outlets.forEach(o => totalOutstandingDebt += (o.debt || 0));
@@ -868,40 +922,31 @@
       document.getElementById('dashTodayNewDebt').innerText = `Rp ${todayNewDebt.toLocaleString('id-ID')}`;
       document.getElementById('dashTotalOutstandingDebt').innerText = `Rp ${totalOutstandingDebt.toLocaleString('id-ID')}`;
 
-      const djoOutlets = appState.outlets.filter(o => o.djoId === appState.activeDjoId && (o.cycle === appState.activeCycle || !o.cycle));
-      const visitedOutlets = djoOutlets.filter(o => appState.transactions.some(t => t.outletId === o.id && t.date.startsWith(todayStr)));
+      renderProductPerformanceChart();
+    }
 
-      const totalCount = djoOutlets.length;
-      const visitedCount = visitedOutlets.length;
-      const pct = totalCount > 0 ? Math.round((visitedCount / totalCount) * 100) : 0;
+    // MODAL SET TARGET
+    function openSetTargetModal() {
+      document.getElementById('dailyTargetPacksInput').value = appState.dailyTargetPacks || 1000;
+      document.getElementById('setTargetModal').classList.remove('hidden');
+    }
 
-      document.getElementById('dashVisitedCount').innerText = `${visitedCount} / ${totalCount} Toko (${pct}%)`;
-      document.getElementById('dashVisitedProgressBar').style.width = `${pct}%`;
+    function closeSetTargetModal() {
+      document.getElementById('setTargetModal').classList.add('hidden');
+    }
 
-      const listEl = document.getElementById('dashOutletList');
-      if (djoOutlets.length === 0) {
-        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Belum ada toko di jalur ini.</p>`;
-      } else {
-        listEl.innerHTML = djoOutlets.map(o => {
-          const isVisited = appState.transactions.some(t => t.outletId === o.id && t.date.startsWith(todayStr));
-          return `
-            <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-xs">
-              <div>
-                <span class="font-bold text-slate-800">${o.name}</span>
-                <span class="text-[10px] text-slate-500 block">${o.owner} • ${o.tier}</span>
-              </div>
-              <div>
-                ${isVisited 
-                  ? `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-check mr-0.5"></i> Dikunjungi</span>`
-                  : `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-clock mr-0.5"></i> Belum</span>`
-                }
-              </div>
-            </div>
-          `;
-        }).join('');
+    function saveDailyTarget() {
+      const val = parseInt(document.getElementById('dailyTargetPacksInput').value);
+      if (isNaN(val) || val <= 0) {
+        alert("Masukkan angka target bungkus yang valid.");
+        return;
       }
 
-      renderProductPerformanceChart();
+      appState.dailyTargetPacks = val;
+      saveAppState();
+      closeSetTargetModal();
+      renderHomeDashboard();
+      alert(`Target penjualan harian diperbarui menjadi ${val.toLocaleString('id-ID')} Bks.`);
     }
 
     function renderProductPerformanceChart() {
@@ -985,7 +1030,7 @@
         updatePosOutletBadge();
       }
       renderPosCatalog();
-      onManualUnitSelect(); // Update harga fast-entry otomatis saat toko diganti
+      onManualUnitSelect();
     }
 
     function updatePosOutletBadge() {
@@ -1066,14 +1111,12 @@
       onManualUnitSelect();
     }
 
-    // MEMPERBAIKI PENYESUAIAN HARGA MENURUT JENIS TOKO PADA INPUT MANUAL
     function onManualUnitSelect() {
       const productId = document.getElementById('manualProductSelect').value;
       const product = appState.products.find(p => p.id === productId);
       if (!product) return;
 
       const unit = document.getElementById('manualUnitSelect').value;
-      // Mengambil tier/kategori toko dari toko yang sedang dipilih di POS, default 'RT'
       const tier = appState.selectedOutletForPos ? appState.selectedOutletForPos.tier : 'RT';
       const basePackPrice = getUnitPrice(product, tier);
 
