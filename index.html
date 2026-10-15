@@ -156,7 +156,7 @@
             <div class="flex items-center space-x-2">
               <button onclick="openSetTargetModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1">
                 <i class="fa-solid fa-bullseye"></i>
-                <span>Atur Target</span>
+                <span>Atur Target Bulanan</span>
               </button>
               <button onclick="openManageDjoModal()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1">
                 <i class="fa-solid fa-pen-to-square"></i>
@@ -165,12 +165,12 @@
             </div>
           </div>
 
-          <!-- TARGET VS PENACAPAIAN WIDGET -->
+          <!-- TARGET VS PENCAPAIAN BULANAN WIDGET -->
           <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
                 <i class="fa-solid fa-bullseye text-red-600"></i>
-                <span>Pencapaian Target Penjualan Hari Ini</span>
+                <span id="dashTargetMonthTitle">Pencapaian Target Penjualan Bulan Ini</span>
               </span>
               <span id="dashTargetProgressPercent" class="text-xs font-extrabold text-red-700 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">0%</span>
             </div>
@@ -178,8 +178,8 @@
               <div id="dashTargetProgressBar" class="bg-red-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
             <div class="flex items-center justify-between text-xs pt-1">
-              <span class="text-slate-500 font-medium">Terjual Hari Ini: <strong id="dashSalesPacksToday" class="text-slate-800">0 Bks</strong></span>
-              <span class="text-slate-500 font-medium">Target Harian: <strong id="dashTargetPacksGoal" class="text-red-700">1.000 Bks</strong></span>
+              <span class="text-slate-500 font-medium">Terjual Bulan Ini: <strong id="dashSalesPacksMonth" class="text-slate-800">0 Bks</strong></span>
+              <span class="text-slate-500 font-medium">Target Bulanan: <strong id="dashTargetPacksGoal" class="text-red-700">25.000 Bks</strong></span>
             </div>
           </div>
 
@@ -446,20 +446,21 @@
     </div>
   </nav>
 
-  <!-- MODAL SET TARGET -->
+  <!-- MODAL SET TARGET BULANAN -->
   <div id="setTargetModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4 space-y-3">
       <div class="flex items-center justify-between border-b pb-2">
-        <h3 class="text-xs font-bold text-slate-800 uppercase">Pengaturan Target Penjualan Harian</h3>
+        <h3 class="text-xs font-bold text-slate-800 uppercase">Pengaturan Target Penjualan Bulanan</h3>
         <button onclick="closeSetTargetModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Target Harian (Satuan Bungkus / Bks)</label>
-        <input type="number" id="dailyTargetPacksInput" min="1" placeholder="Masukkan target bungkus" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-red-700">
+        <label class="block text-xs font-medium text-slate-600 mb-1">Target Bulanan (Satuan Bungkus / Bks)</label>
+        <input type="number" id="monthlyTargetPacksInput" min="1" placeholder="Masukkan target bungkus bulanan" class="w-full text-sm bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-red-700">
+        <p class="text-[10px] text-slate-400 mt-1">*Pencapaian bulanan akan otomatis direset ke 0 setiap tanggal 1.</p>
       </div>
       <div class="pt-2 flex justify-end space-x-2 border-t">
         <button onclick="closeSetTargetModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg">Batal</button>
-        <button onclick="saveDailyTarget()" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg">Simpan Target</button>
+        <button onclick="saveMonthlyTarget()" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-700 hover:bg-red-800 rounded-lg">Simpan Target</button>
       </div>
     </div>
   </div>
@@ -671,7 +672,7 @@
     let appState = {
       activeCycle: 'MINGGU_A',
       activeDjoId: 'DJO_SENIN',
-      dailyTargetPacks: 1000,
+      monthlyTargetPacks: 25000,
       djoList: [...DEFAULT_DJO],
       products: [...DEFAULT_PRODUCTS],
       outlets: [...DEFAULT_OUTLETS],
@@ -738,19 +739,19 @@
         const savedProducts = localStorage.getItem('rokok_sales_products');
         const savedOutlets = localStorage.getItem('rokok_sales_outlets');
         const savedTransactions = localStorage.getItem('rokok_sales_transactions');
-        const savedTarget = localStorage.getItem('rokok_sales_target');
+        const savedMonthlyTarget = localStorage.getItem('rokok_sales_monthly_target');
 
         appState.djoList = savedDjo ? JSON.parse(savedDjo) : DEFAULT_DJO;
         appState.products = savedProducts ? JSON.parse(savedProducts) : DEFAULT_PRODUCTS;
         appState.outlets = savedOutlets ? JSON.parse(savedOutlets) : DEFAULT_OUTLETS;
         appState.transactions = savedTransactions ? JSON.parse(savedTransactions) : [];
-        appState.dailyTargetPacks = savedTarget ? parseInt(savedTarget) : 1000;
+        appState.monthlyTargetPacks = savedMonthlyTarget ? parseInt(savedMonthlyTarget) : 25000;
       } catch (e) {
         appState.djoList = [...DEFAULT_DJO];
         appState.products = [...DEFAULT_PRODUCTS];
         appState.outlets = [...DEFAULT_OUTLETS];
         appState.transactions = [];
-        appState.dailyTargetPacks = 1000;
+        appState.monthlyTargetPacks = 25000;
       }
     }
 
@@ -760,7 +761,7 @@
         localStorage.setItem('rokok_sales_products', JSON.stringify(appState.products));
         localStorage.setItem('rokok_sales_outlets', JSON.stringify(appState.outlets));
         localStorage.setItem('rokok_sales_transactions', JSON.stringify(appState.transactions));
-        localStorage.setItem('rokok_sales_target', appState.dailyTargetPacks.toString());
+        localStorage.setItem('rokok_sales_monthly_target', appState.monthlyTargetPacks.toString());
 
         syncToFirebase();
       } catch (e) {
@@ -775,7 +776,7 @@
           products: appState.products,
           outlets: appState.outlets,
           transactions: appState.transactions,
-          dailyTargetPacks: appState.dailyTargetPacks,
+          monthlyTargetPacks: appState.monthlyTargetPacks,
           updatedAt: new Date().toISOString()
         });
       } catch (err) {
@@ -792,7 +793,7 @@
           if (data.products) appState.products = data.products;
           if (data.outlets) appState.outlets = data.outlets;
           if (data.transactions) appState.transactions = data.transactions;
-          if (data.dailyTargetPacks) appState.dailyTargetPacks = data.dailyTargetPacks;
+          if (data.monthlyTargetPacks) appState.monthlyTargetPacks = data.monthlyTargetPacks;
           
           saveAppState();
           renderAllViews();
@@ -876,7 +877,7 @@
       renderDebtsList();
     }
 
-    // DASHBOARD & WIDGET TARGET VS PENCAPAIAN (SATUAN BUNGKUS)
+    // DASHBOARD & WIDGET TARGET VS PENCAPAIAN BULANAN
     function renderHomeDashboard() {
       const activeDjo = appState.djoList.find(d => d.id === appState.activeDjoId) || appState.djoList[0];
       
@@ -885,31 +886,44 @@
       document.getElementById('dashCycleBadge').innerText = appState.activeCycle === 'MINGGU_A' ? 'SIKLUS MINGGU A (1)' : 'SIKLUS MINGGU B (2)';
       document.getElementById('dashDeviceDate').innerText = getFormattedDeviceDate();
 
-      const todayStr = new Date().toISOString().split('T')[0];
-      let todayTotalOmzet = 0, todayCash = 0, todayNewDebt = 0, todayPacksSold = 0;
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // 0 - 11
+      const todayStr = now.toISOString().split('T')[0];
+
+      let todayTotalOmzet = 0, todayCash = 0, todayNewDebt = 0;
+      let monthPacksSold = 0;
+
+      const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      document.getElementById('dashTargetMonthTitle').innerText = `Target Bulanan (${monthNames[currentMonth]} ${currentYear})`;
 
       appState.transactions.forEach(trx => {
+        const trxDate = new Date(trx.date);
+
+        // Akumulasi Bungkus Terjual di Bulan Berjalan (Reset Otomatis Saat Bulan Berganti pada Perangkat)
+        if (trx.type === 'SALE' && trxDate.getFullYear() === currentYear && trxDate.getMonth() === currentMonth) {
+          if (trx.items && Array.isArray(trx.items)) {
+            trx.items.forEach(item => {
+              monthPacksSold += (item.totalPacks || 0);
+            });
+          }
+        }
+
+        // Metrik Harian Hari Ini
         if (trx.date.startsWith(todayStr) && trx.type === 'SALE') {
           todayTotalOmzet += trx.total;
           if (trx.paymentType === 'TUNAI') todayCash += trx.total;
           if (trx.paymentType === 'TEMPO') todayNewDebt += trx.total;
-
-          // Hitung total bungkus terjual hari ini
-          if (trx.items && Array.isArray(trx.items)) {
-            trx.items.forEach(item => {
-              todayPacksSold += (item.totalPacks || 0);
-            });
-          }
         } else if (trx.date.startsWith(todayStr) && trx.type === 'DEBT_PAYMENT') {
           todayCash += trx.total;
         }
       });
 
-      // Hitung persentase target vs pencapaian
-      const targetGoal = appState.dailyTargetPacks || 1000;
-      const progressPct = Math.min(100, Math.round((todayPacksSold / targetGoal) * 100));
+      // Hitung persentase target vs pencapaian bulanan
+      const targetGoal = appState.monthlyTargetPacks || 25000;
+      const progressPct = Math.min(100, Math.round((monthPacksSold / targetGoal) * 100));
 
-      document.getElementById('dashSalesPacksToday').innerText = `${todayPacksSold.toLocaleString('id-ID')} Bks`;
+      document.getElementById('dashSalesPacksMonth').innerText = `${monthPacksSold.toLocaleString('id-ID')} Bks`;
       document.getElementById('dashTargetPacksGoal').innerText = `${targetGoal.toLocaleString('id-ID')} Bks`;
       document.getElementById('dashTargetProgressPercent').innerText = `${progressPct}%`;
       document.getElementById('dashTargetProgressBar').style.width = `${progressPct}%`;
@@ -925,9 +939,9 @@
       renderProductPerformanceChart();
     }
 
-    // MODAL SET TARGET
+    // MODAL SET TARGET BULANAN
     function openSetTargetModal() {
-      document.getElementById('dailyTargetPacksInput').value = appState.dailyTargetPacks || 1000;
+      document.getElementById('monthlyTargetPacksInput').value = appState.monthlyTargetPacks || 25000;
       document.getElementById('setTargetModal').classList.remove('hidden');
     }
 
@@ -935,18 +949,18 @@
       document.getElementById('setTargetModal').classList.add('hidden');
     }
 
-    function saveDailyTarget() {
-      const val = parseInt(document.getElementById('dailyTargetPacksInput').value);
+    function saveMonthlyTarget() {
+      const val = parseInt(document.getElementById('monthlyTargetPacksInput').value);
       if (isNaN(val) || val <= 0) {
         alert("Masukkan angka target bungkus yang valid.");
         return;
       }
 
-      appState.dailyTargetPacks = val;
+      appState.monthlyTargetPacks = val;
       saveAppState();
       closeSetTargetModal();
       renderHomeDashboard();
-      alert(`Target penjualan harian diperbarui menjadi ${val.toLocaleString('id-ID')} Bks.`);
+      alert(`Target penjualan bulanan diperbarui menjadi ${val.toLocaleString('id-ID')} Bks.`);
     }
 
     function renderProductPerformanceChart() {
